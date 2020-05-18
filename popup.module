@@ -1,0 +1,80 @@
+<?php 
+
+function hias_default_popup_form($form, &$formstate) {
+  $form = array();
+  $form['first_name'] = array(
+  	'#title' => 'First name',
+    '#type'	 => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['last_name'] = array(
+  	'#title' => 'Last name',
+    '#type'	 => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['email'] = array(
+    '#title' => 'Email',
+    '#type'  => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['zip_code'] = array(
+  	'#title' => 'Zip Code',
+    '#type'	 => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['submit'] = array(
+  	'#title' => 'submit',
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * Implementation of hook_block_info().
+ */
+function hias_default_popup_block_info() {
+  $blocks = array();
+  $blocks['hias_default_popup'] = array(
+  'info' => t('The default popup that appears on hias.org'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function hias_default_popup_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'hias_default_popup':
+    $block['subject'] = t('');
+    $block['content'] = drupal_get_form('hias_default_popup_form');
+    break;
+  }
+  return $block;
+}
+
+function hias_default_popup_form_submit($form, &$form_state) {
+  global $user;
+  $node = node_load(1); //node # of webform to submit to
+  $data = array(
+    '1' => array ('0' => $form['first_name']['#value']),
+    '2' => array ('0' => $form['last_name']['#value']),
+    '3' => array ('0' => $form['email']['#value']),
+    '4' => array ('0' => $form['zip_code']['#value'])
+  );
+  
+  $submission = (object) array(
+   'nid' => $node->nid,
+   'uid' => $user->uid,
+   'submitted' => REQUEST_TIME,
+   'remote_addr' => ip_address(),
+   'is_draft' => FALSE,
+   'data' => $data,
+  );
+
+  module_load_include('inc', 'webform', 'webform.module');
+  module_load_include('inc', 'webform', 'includes/webform.submissions.inc');
+  webform_submission_insert($node, $submission);
+}
