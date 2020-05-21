@@ -2,14 +2,17 @@
 
 function hias_default_popup_form($form, &$formstate) {
   $form = array();
+  $form['hias_default_popup_form'] = array(
+    '#prefix' => '<div id="hias-default-popup-form-content">',
+  );
   $form['first_name'] = array(
-  	'#title' => 'First name',
-    '#type'	 => 'textfield',
+    '#title' => 'First name',
+    '#type'  => 'textfield',
     '#required' => TRUE,
   );
   $form['last_name'] = array(
-  	'#title' => 'Last name',
-    '#type'	 => 'textfield',
+    '#title' => 'Last name',
+    '#type'  => 'textfield',
     '#required' => TRUE,
   );
   $form['email'] = array(
@@ -18,14 +21,21 @@ function hias_default_popup_form($form, &$formstate) {
     '#required' => TRUE,
   );
   $form['zip_code'] = array(
-  	'#title' => 'Zip Code',
-    '#type'	 => 'textfield',
+    '#suffix' => '</div>',
+    '#title' => 'Zip Code',
+    '#type'  => 'textfield',
     '#required' => TRUE,
   );
   $form['submit'] = array(
-  	'#title' => 'submit',
     '#type' => 'submit',
     '#value' => t('Submit'),
+    '#ajax' => array(
+      'event' => 'click',
+      'callback' => 'hias_default_popup_form_submit',
+      'wrapper' => 'hias-default-popup-form-content',
+      'method' => 'replaceWith',
+      'effect' => 'fade',
+    )
   );
   return $form;
 }
@@ -45,13 +55,13 @@ function hias_default_popup_block_info() {
  * Implementation of hook_block_view().
  */
 function hias_default_popup_block_view($delta = ''){
-  $block = array();
-  switch($delta){
-    case 'hias_default_popup':
-    $block['subject'] = t('');
-    $block['content'] = drupal_get_form('hias_default_popup_form');
-    break;
-  }
+    $block = array();
+    switch($delta){
+      case 'hias_default_popup':
+      $block['subject'] = t('');
+      $block['content'] = drupal_get_form('hias_default_popup_form');
+      break;
+    }   
   return $block;
 }
 
@@ -75,6 +85,10 @@ function hias_default_popup_form_submit($form, &$form_state) {
   );
 
   module_load_include('inc', 'webform', 'webform.module');
-  module_load_include('inc', 'webform', 'includes/webform.submissions.inc');
+  module_load_include('inc', 'webform', 'includes/webform.submissions');
   webform_submission_insert($node, $submission);
+
+  $element = $form['hias_default_popup_form'];
+  $element['#markup'] = '<p>Submission recieved. Find more opportunities to stand for refugees on HIAS’ <a href="https://www.hias.org/get-involved/take-action">Take Action Page</a>.</p> ';
+  return $element;
 }
